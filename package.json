@@ -1,0 +1,32 @@
+{
+  "name": "console-help",
+  "version": "1.0.0",
+  "description": "Small grain utilities to help you to work with a terminal/console.",
+  "module": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "./scripts/test.sh",
+    "test:runtime": "vitest run",
+    "test:types": "typed test",
+    "test:source": "typed source -v",
+    "build": "tsdown"
+  },
+  "keywords": [
+    "cli",
+    "console",
+    "utility"
+  ],
+  "author": "Ken Snyder<ken@ken.net>",
+  "license": "MIT",
+  "packageManager": "pnpm@10.19.0",
+  "devDependencies": {
+    "@types/node": "^22.18.13",
+    "tsdown": "^0.15.12",
+    "typed-tester": "^0.13.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
+  },
+  "dependencies": {
+    "inferred-types": "^1.2.3"
+  }
+}

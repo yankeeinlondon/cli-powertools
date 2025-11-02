@@ -1,0 +1,15 @@
+node_modules
+dist
+.DS_Store
+bin
+.aider*
+.ts-*
+ai/prompts/*.md
+!ai/prompts/context.md
+.env
+.claude-trace
+test-results.xml
+coverage/
+.vitest/
+tests/__snapshots__/
+.ai/prompts
