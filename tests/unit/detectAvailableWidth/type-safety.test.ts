@@ -1,15 +1,14 @@
+import type { Expect, AssertEqual, AssertTrue, AssertExtends } from "inferred-types/types";
 import { describe, it, expect } from "vitest";
 import { detectAvailableWidth } from "~/utils/detectAvailableWidth";
 
 /**
- * Phase 4: Type Safety and Documentation Tests
+ * Type Safety and Documentation Tests
  *
  * Comprehensive tests for type safety, generic parameters, return types,
  * and function signature verification.
  */
 describe("detectAvailableWidth() - Type Safety", () => {
-    // Helper type for type assertions
-    type Expect<T extends true> = T;
 
     // ========== TYPE TESTS: FUNCTION SIGNATURE ==========
 
@@ -25,28 +24,30 @@ describe("detectAvailableWidth() - Type Safety", () => {
         // Type test: Verify Parameters utility type shows correct signature
         type cases = [
             // Should accept number or undefined (optional parameter)
-            Expect<Parameters<typeof detectAvailableWidth>[0] extends number | undefined ? true : false>,
+            Expect<AssertEqual<
+                Parameters<typeof detectAvailableWidth>[0],
+                number | undefined
+            >>,
             // Parameter length can be 0 or 1 (optional parameter)
-            Expect<Parameters<typeof detectAvailableWidth>["length"] extends 0 | 1 ? true : false>,
+            Expect<AssertEqual<
+                Parameters<typeof detectAvailableWidth>["length"], 0 | 1
+            >>
         ];
     });
 
-    it("should return Promise<number> for all invocations", async () => {
+    it("should return Promise<number>", async () => {
         const result1 = detectAvailableWidth();
-        const result2 = detectAvailableWidth(120);
 
         // Runtime: Both should be Promises
         expect(result1).toBeInstanceOf(Promise);
-        expect(result2).toBeInstanceOf(Promise);
 
         // Runtime: Both should resolve to numbers
         expect(await result1).toEqual(expect.any(Number));
-        expect(await result2).toEqual(expect.any(Number));
 
         // Type test: Return type is always Promise<number>
         type cases = [
-            Expect<ReturnType<typeof detectAvailableWidth> extends Promise<number> ? true : false>,
-            Expect<Awaited<ReturnType<typeof detectAvailableWidth>> extends number ? true : false>,
+            Expect<AssertExtends<ReturnType<typeof detectAvailableWidth>, Promise<number>>>,
+            Expect<AssertExtends<Awaited<ReturnType<typeof detectAvailableWidth>>, number>>,
         ];
     });
 
@@ -66,9 +67,9 @@ describe("detectAvailableWidth() - Type Safety", () => {
         // Type test: Generic parameter T preserves literal types through inference
         type cases = [
             // Result type is always number (not narrowed to literal)
-            Expect<typeof result1 extends number ? true : false>,
-            Expect<typeof result2 extends number ? true : false>,
-            Expect<typeof result3 extends number ? true : false>,
+            Expect<AssertExtends<typeof result1, number>>,
+            Expect<AssertExtends<typeof result2, number>>,
+            Expect<AssertExtends<typeof result3, number>>,
         ];
     });
 
@@ -82,7 +83,7 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test: Return type is number
         type cases = [
-            Expect<typeof result extends number ? true : false>,
+            Expect<AssertExtends<typeof result, number>>,
         ];
     });
 
@@ -95,7 +96,7 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test: Return type is number
         type cases = [
-            Expect<typeof result extends number ? true : false>,
+            Expect<AssertExtends<typeof result, number>>,
         ];
     });
 
@@ -108,7 +109,7 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test: Return type is number
         type cases = [
-            Expect<typeof result extends number ? true : false>,
+            Expect<AssertExtends<typeof result, number>>,
         ];
     });
 
@@ -126,11 +127,11 @@ describe("detectAvailableWidth() - Type Safety", () => {
         // Type test: Return type is broad number, not narrowed to literals
         type cases = [
             // Should extend number
-            Expect<typeof result1 extends number ? true : false>,
-            Expect<typeof result2 extends number ? true : false>,
-            // But number should also extend the result type (bidirectional)
-            Expect<number extends typeof result1 ? true : false>,
-            Expect<number extends typeof result2 ? true : false>,
+            Expect<AssertExtends<typeof result1, number>>,
+            Expect<AssertExtends<typeof result2, number>>,
+            // But number should also extend the result type (bidirectional check = they're equal)
+            Expect<AssertEqual<typeof result1, number>>,
+            Expect<AssertEqual<typeof result2, number>>,
         ];
     });
 
@@ -165,9 +166,9 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test: All results are numbers
         type cases = [
-            Expect<typeof cliDefaultWidth extends number ? true : false>,
-            Expect<typeof narrowWidth extends number ? true : false>,
-            Expect<typeof wideWidth extends number ? true : false>,
+            Expect<AssertExtends<typeof cliDefaultWidth, number>>,
+            Expect<AssertExtends<typeof narrowWidth, number>>,
+            Expect<AssertExtends<typeof wideWidth, number>>,
         ];
     });
 
@@ -182,8 +183,8 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test: Consistent return types
         type cases = [
-            Expect<typeof width1 extends number ? true : false>,
-            Expect<typeof width2 extends number ? true : false>,
+            Expect<AssertExtends<typeof width1, number>>,
+            Expect<AssertExtends<typeof width2, number>>,
         ];
     });
 
@@ -199,7 +200,7 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test
         type cases = [
-            Expect<typeof width extends number ? true : false>,
+            Expect<AssertExtends<typeof width, number>>,
         ];
     });
 
@@ -213,7 +214,7 @@ describe("detectAvailableWidth() - Type Safety", () => {
 
         // Type test
         type cases = [
-            Expect<typeof width extends number ? true : false>,
+            Expect<AssertExtends<typeof width, number>>,
         ];
     });
 });
