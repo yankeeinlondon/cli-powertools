@@ -1,12 +1,17 @@
 {
     "cSpell.words": [
         "COLORTERM",
+        "DBUS",
         "findstr",
+        "GHOSTTY",
         "gsettings",
         "HKCU",
+        "ITERM",
+        "KONSOLE",
         "Linearizes",
         "riscv",
         "truecolor",
-        "WCAG"
+        "WCAG",
+        "WEZTERM"
     ]
 }

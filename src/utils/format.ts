@@ -4,7 +4,8 @@ import {
     narrow,
     isArray,
     Never,
-    isUndefined, 
+    isUndefined,
+    isRgbaObject, 
 } from "inferred-types";
 import { 
     Contains, 
@@ -773,7 +774,7 @@ export const format = {
         fg: TFg,
         bg: TBg = undefined as TBg
     ) {
-        const foreground = isRgb(fg)
+        const foreground = isRgbaObject(fg)
             ? fg
             : isArray(fg)
             ? { r: fg[0], g: fg[1], b: fg[2] }
@@ -787,7 +788,7 @@ export const format = {
             : Never;
 
         if(background) {
-            
+
         }
 
     }

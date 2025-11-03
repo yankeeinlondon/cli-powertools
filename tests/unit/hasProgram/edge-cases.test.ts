@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { hasProgram } from "~/utils/hasProgram";
 import { discoverOs } from "~/utils/os";
-import { createTestExecutable, createTestExecutables } from "../helpers/createTestExecutable";
+import { createTestExecutable, createTestExecutables } from "../../helpers/createTestExecutable";
 import type { Expect, AssertEqual } from "inferred-types/types";
 import { AssertError } from "inferred-types";
 

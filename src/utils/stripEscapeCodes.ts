@@ -7,7 +7,8 @@
  * - ANSI escape codes for colors
  * - OSC8 codes for links
  * - OSC52 codes for copying to the clipboard, etc.
- * - any OSC4 codes present
+ * - any other known OSC or other escape code for the detected
+ * console
  */
 export function stripEscapeCodes<T extends string>(content: T) {
     // TODO
