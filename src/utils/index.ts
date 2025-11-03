@@ -1,4 +1,5 @@
 export * from "./availableWidth";
+export * from "./detectColorDepth";
 export * from "./detectColorScheme";
 export * from "./format";
 export * from "./hasProgram";
