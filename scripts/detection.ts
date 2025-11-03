@@ -1,7 +1,15 @@
 #!/usr/bin/env bun run 
 
-import { discoverOsArch, format } from "~/utils"
+import { detectColorScheme, discoverOsArch, format } from "~/utils"
+import { box } from "~/utils/box";
 
 const { bold, normal, dim, blue } = format;
 
-console.log(bold("OS:") + discoverOsArch());
+console.log();
+box("Host Detection")
+
+console.log();
+console.log(bold("OS:    ") + blue(discoverOsArch()));
+console.log(bold("Theme: ") + await detectColorScheme());
+
+

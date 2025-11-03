@@ -131,3 +131,9 @@ export type AsRgb<
                     `invalid-type/rgb`,
                     `A value which doesn't extend RGB, RGBA, HexColor, CssRgb, or CssRgba was passed in!`
                 >;
+
+
+export type ColorDepth = 8 | 16 | 256 | 16700000;
+
+
+

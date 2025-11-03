@@ -1,7 +1,10 @@
 import { 
     stripBefore, 
     trim, 
-    narrow, 
+    narrow,
+    isArray,
+    Never,
+    isUndefined, 
 } from "inferred-types";
 import { 
     Contains, 
@@ -761,6 +764,32 @@ export const format = {
 
     blue<T extends string>(content: T) {
         return blue(content)
+    },
+
+    rgb<
+        TFg extends RGB | [number,number,number], 
+        TBg extends undefined | RGB| [number,number, number]
+    >(
+        fg: TFg,
+        bg: TBg = undefined as TBg
+    ) {
+        const foreground = isRgb(fg)
+            ? fg
+            : isArray(fg)
+            ? { r: fg[0], g: fg[1], b: fg[2] }
+            : Never;
+        const background = isUndefined(bg)
+            ? bg
+            : isRGB(bg)
+            ? bg
+            : isArray(bg)
+            ? { r: bg[0], g: bg[1], b: bg[2] }
+            : Never;
+
+        if(background) {
+            
+        }
+
     }
 
 }

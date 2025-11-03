@@ -27,6 +27,6 @@
     "vitest": "^4.0.6"
   },
   "dependencies": {
-    "inferred-types": "^1.2.3"
+    "inferred-types": "^1.3.0"
   }
 }
