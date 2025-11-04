@@ -13,13 +13,14 @@ import {
     Trim,
     StringKeys, 
     Fallback, 
-    StripAfter
+    StripAfter,
+    RGB
 } from "inferred-types/types";
-import { RGB } from "~/types";
+import { ESC } from "~/constants";
 
-const FG_START = narrow("\x1b[38;2;");
+const FG_START = narrow(`${ESC}[38;2;`);
 const FG_END = "m" as const;
-const BG_START = narrow("\x1b[48;2;");
+const BG_START = narrow(`${ESC}[48;2;`);
 const BG_END = "m" as const;
 
 type ForegroundColor<R extends number, G extends number, B extends number> = {

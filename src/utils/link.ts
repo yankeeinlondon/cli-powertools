@@ -12,10 +12,11 @@ import {
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { InvalidFilePath } from "~/errors";
+import { OSC8_DELIMITER, OSC8_LINK } from "~/constants";
 
-export const CONSOLE_LINK_PREAMBLE = narrow(`\x1B]8;;`);
-export const CONSOLE_LINK_DELIMITER = narrow(`\x1B\\`);
-export const CONSOLE_LINK_CLOSURE = narrow(`\x1B]8;;\x1B\\`);
+export const CONSOLE_LINK_PREAMBLE = narrow(`${OSC8_LINK}`);
+export const CONSOLE_LINK_DELIMITER = narrow(OSC8_DELIMITER);
+export const CONSOLE_LINK_CLOSURE = narrow(`${OSC8_LINK}${OSC8_DELIMITER}`);
 
 /**
  * **link**`(text, link)`

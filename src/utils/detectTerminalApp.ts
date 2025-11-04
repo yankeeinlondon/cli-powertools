@@ -149,3 +149,15 @@ export function detectTerminalApp() {
     ) as unknown as TerminalApp
 
 }
+
+/**
+ * **detectAppVersion**`()`
+ * 
+ * Determines what the current app version is being used.
+ * 
+ * - looks at ENV variables first to detect
+ * - can also use shell based querying if necessary
+ */
+export function detectAppVersion() {
+    // TODO
+}
