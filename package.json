@@ -1,6 +1,6 @@
 {
-  "name": "console-help",
-  "version": "1.0.0",
+  "name": "cli-powertools",
+  "version": "0.1.0",
   "description": "Small grain utilities to help you to work with a terminal/console.",
   "module": "dist/index.js",
   "type": "module",
