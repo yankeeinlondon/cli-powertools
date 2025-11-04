@@ -715,7 +715,7 @@ export const format = {
      * Dims the text passed in and returns font weight to **normal**
      * afterward.
      */
-    dim<T extends string>(content: T): `${typeof DIM}${T}${typeof NORMAL}` {
+    dim<T extends string | number>(content: T): `${typeof DIM}${T}${typeof NORMAL}` {
         return `${DIM}${content}${NORMAL}`
     },
     /**

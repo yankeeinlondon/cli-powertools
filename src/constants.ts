@@ -22,7 +22,7 @@ export const TERMINATOR = narrow(`${ESC}\\`);
 export const BEL = narrow(`\x07`);
 
 /** the control codes following the start sequence which identifies it as a link */
-export const OSC8_LINK = narrow(`${ESC}8;;`);
+export const OSC8_LINK = narrow(`${ESC}]8;;`);
 /** 
  * a delimiter sequence for OSC8 links; used between text and URI as well as at
  * end of the sequence.
@@ -110,7 +110,7 @@ export const BG_BRIGHT_WHITE= narrow(`${ANSI_SGR_START}[107m`);
 /**
  * resets all SGR formatting to defaults for the console
  */
-export const SGR_RESET = narrow(`${ANSI_SGR_START}0m`);
+export const RESET = narrow(`${ANSI_SGR_START}0m`);
 /**
  * Switches to using the _default_ foreground color
  */
@@ -119,6 +119,29 @@ export const SGR_DEF_FG = narrow(`${ANSI_SGR_START}39m`);
  * Switches to using the _default_ background color
  */
 export const SGR_DEF_BG = narrow(`${ANSI_SGR_START}49m`);
+
+
+export const ITALIC = narrow(`${ANSI_SGR_START}3m`);
+export const UNDERLINE = narrow(`${ANSI_SGR_START}4m`);
+export const BLINK = narrow(`${ANSI_SGR_START}5m`);
+export const FAST_BLINK = narrow(`${ANSI_SGR_START}6m`);
+export const REVERSE = narrow(`${ANSI_SGR_START}7m`);
+export const HIDE = narrow(`${ANSI_SGR_START}8m`);
+export const STRIKE = narrow(`${ANSI_SGR_START}9m`);
+
+export const NO_ITALIC = narrow(`${ANSI_SGR_START}23m`);
+export const NO_UNDERLINE = narrow(`${ANSI_SGR_START}24m`);
+export const NO_BLINK = narrow(`${ANSI_SGR_START}25m`);
+export const NO_FAST_BLINK = narrow(`${ANSI_SGR_START}26m`);
+export const NO_REVERSE = narrow(`${ANSI_SGR_START}27m`);
+export const NO_HIDE = narrow(`${ANSI_SGR_START}28m`);
+export const NO_STRIKE = narrow(`${ANSI_SGR_START}29m`);
+
+export const NORMAL = narrow(`${ANSI_SGR_START}22m`);
+export const BOLD = narrow(`${ANSI_SGR_START}1m`);
+export const DIM = narrow(`${ANSI_SGR_START}2m`);
+
+
 
 
 const FG_COLOR = narrow(`${ESC}[38;2;`);

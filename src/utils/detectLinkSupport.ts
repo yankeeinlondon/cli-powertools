@@ -1,5 +1,5 @@
 
-import { detectTerminalApp } from "./detectTerminalApp";
+import { detectTerminalApp, detectAppVersion } from "./detectTerminalApp";
 import type { TerminalApp } from "~/types";
 
 // Module-level cache: undefined = not yet cached, boolean | null = cached result
@@ -70,12 +70,31 @@ export async function detectLinkSupport(): Promise<boolean | null> {
     // Detect terminal application
     const terminal = detectTerminalApp();
 
-    // Define support map
+    // Special handling for Alacritty: check version
+    // OSC8 support added in Alacritty 0.13.0
+    if (terminal === "alacritty") {
+        const version = await detectAppVersion();
+
+        if (version !== null) {
+            // OSC8 added in Alacritty 0.13.0
+            // version >= 0.13.0 means: major > 0 OR (major === 0 AND minor >= 13)
+            const supportsOSC8 =
+                version.major > 0 ||
+                (version.major === 0 && version.minor >= 13);
+
+            cachedLinkSupport = supportsOSC8;
+            return supportsOSC8;
+        }
+
+        // Version unknown - fall through to optimistic map lookup
+    }
+
+    // Define support map for all other terminals
     const supportMap: Record<TerminalApp, boolean | null> = {
         "iterm2": true,
         "wezterm": true,
         "kitty": true,
-        "alacritty": true,
+        "alacritty": true,  // Optimistic default when version unavailable
         "konsole": true,
         "ghostty": true,
         "windows-terminal": true,

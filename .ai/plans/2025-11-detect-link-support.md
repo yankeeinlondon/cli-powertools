@@ -26,9 +26,9 @@ Implement the `detectLinkSupport()` function to detect whether the current termi
 - [x] All tests pass (runtime and type tests) - Phase 1
 - [x] No regressions in existing tests - Phase 1
 - [x] Comprehensive JSDoc documentation - Phase 1
-- [ ] `detectAppVersion()` implemented with version parsing - Phase 2
-- [ ] Enhanced link support with Alacritty version checking - Phase 2
-- [ ] Functions exported from `src/utils/index.ts` - Phase 2
+- [x] `detectAppVersion()` implemented with version parsing - Phase 2
+- [x] Enhanced link support with Alacritty version checking - Phase 2
+- [x] Functions exported from `src/utils/index.ts` - Phase 2
 
 ## Phases
 
@@ -155,7 +155,7 @@ None (file already exists at `src/utils/detectLinkSupport.ts`)
 
 **Estimated Complexity:** Medium
 
-**Status:** Not Started
+**Status:** ✅ **COMPLETE** - 2025-11-03
 
 #### Overview
 
@@ -374,17 +374,17 @@ it("should return true for Alacritty v0.13.0", async () => {
 
 #### Success Criteria
 
-- [ ] `detectAppVersion()` implemented with version parsing
-- [ ] Supports Alacritty, WezTerm, Kitty version detection
-- [ ] Parses various version string formats correctly
-- [ ] `detectLinkSupport()` enhanced with Alacritty version checking
-- [ ] Returns `false` for Alacritty < 0.13, `true` for >= 0.13
-- [ ] Falls back to map lookup when version unavailable
-- [ ] Both functions exported from `src/utils/index.ts`
-- [ ] All new tests pass (detectAppVersion + enhanced detectLinkSupport)
-- [ ] No regressions in existing detectLinkSupport tests
-- [ ] Full test suite passes
-- [ ] Comprehensive JSDoc for `detectAppVersion()`
+- [x] `detectAppVersion()` implemented with version parsing
+- [x] Supports Alacritty, WezTerm, Kitty version detection
+- [x] Parses various version string formats correctly
+- [x] `detectLinkSupport()` enhanced with Alacritty version checking
+- [x] Returns `false` for Alacritty < 0.13, `true` for >= 0.13
+- [x] Falls back to map lookup when version unavailable
+- [x] Both functions exported from `src/utils/index.ts`
+- [x] All new tests pass (detectAppVersion + enhanced detectLinkSupport)
+- [x] No regressions in existing detectLinkSupport tests
+- [x] Full test suite passes
+- [x] Comprehensive JSDoc for `detectAppVersion()`
 
 ---
 

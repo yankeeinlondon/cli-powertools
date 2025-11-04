@@ -12,7 +12,7 @@ import {
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { InvalidFilePath } from "~/errors";
-import { OSC8_DELIMITER, OSC8_LINK } from "~/constants";
+import { DIM, OSC8_DELIMITER, OSC8_LINK, RESET, UNDERLINE } from "~/constants";
 
 export const CONSOLE_LINK_PREAMBLE = narrow(`${OSC8_LINK}`);
 export const CONSOLE_LINK_DELIMITER = narrow(OSC8_DELIMITER);
@@ -26,9 +26,12 @@ export const CONSOLE_LINK_CLOSURE = narrow(`${OSC8_LINK}${OSC8_DELIMITER}`);
  *
  */
 function link<
-    T extends string,
-    L extends string
->(text: T, link: L): `${typeof CONSOLE_LINK_PREAMBLE}${L}${typeof CONSOLE_LINK_DELIMITER}${T}${typeof CONSOLE_LINK_CLOSURE}` {
+    TText extends string,
+    TLink extends string
+>(
+    text: TText, 
+    link: TLink
+): `${typeof CONSOLE_LINK_PREAMBLE}${TLink}${typeof CONSOLE_LINK_DELIMITER}${TText}${typeof CONSOLE_LINK_CLOSURE}` {
     return `${CONSOLE_LINK_PREAMBLE}${link}${CONSOLE_LINK_DELIMITER}${text}${CONSOLE_LINK_CLOSURE}`;
 }
 
@@ -54,10 +57,12 @@ type FileLinkRtn<
  */
 export function fileLink<
     T extends string,
-    P extends string | undefined = undefined
+    P extends string | undefined = undefined,
+    S extends boolean = true
 >(
     text: T,
-    path?: P
+    path?: P,
+    support: S = true as S
 ): FileLinkRtn<T, P> {
     if (isUndefined(path)) {
         return text as FileLinkRtn<T, P>;
@@ -80,8 +85,14 @@ export function fileLink<
     }
 
     if (existsSync(fullPath)) {
-        const linkUrl = lineNumber ? `file://${fullPath}:${lineNumber}` : `file://${fullPath}`;
-        return link(text, linkUrl) as FileLinkRtn<T, P>;
+        const linkUrl = lineNumber 
+            ? `file://${fullPath}:${lineNumber}` 
+            : `file://${fullPath}`;
+
+
+        return support
+            ? link(text, linkUrl) as FileLinkRtn<T, P>
+            : `${text} (${DIM}${linkUrl}${RESET})` as FileLinkRtn<T, P>;
     }
     else {
         throw InvalidFilePath(`The path '${fullPath}' is not a valid path on the file system!`);

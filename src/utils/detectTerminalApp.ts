@@ -15,6 +15,7 @@ import {
 } from "~/constants";
 import { TerminalApp } from "~/types";
 import { readFileSync } from "node:fs";
+import { runScript } from "./shellCommand";
 
 /**
  * **isRunningInWSL**()
@@ -151,13 +152,250 @@ export function detectTerminalApp() {
 }
 
 /**
- * **detectAppVersion**`()`
- * 
- * Determines what the current app version is being used.
- * 
- * - looks at ENV variables first to detect
- * - can also use shell based querying if necessary
+ * **AppVersion** type
+ *
+ * Represents a parsed semantic version number.
  */
-export function detectAppVersion() {
-    // TODO
+export type AppVersion = {
+    major: number;
+    minor: number;
+    patch: number;
+    toString(): string;
+};
+
+// Module-level cache: undefined = not yet cached, null = no version available
+let cachedAppVersion: AppVersion | null | undefined = undefined;
+
+/**
+ * **detectAppVersion**()
+ *
+ * Detects the version of the current terminal application.
+ *
+ * **Detection Strategy:**
+ *
+ * 1. **Environment Variables** (checked with priority order):
+ *    - Alacritty: ALACRITTY_VERSION → TERM_PROGRAM_VERSION
+ *    - WezTerm: WEZTERM_VERSION → TERM_PROGRAM_VERSION
+ *    - Kitty: KITTY_VERSION → TERM_PROGRAM_VERSION
+ *    - iTerm2: TERM_PROGRAM_VERSION
+ *    - Ghostty: TERM_PROGRAM_VERSION
+ *    - Apple Terminal: TERM_PROGRAM_VERSION
+ *    - Konsole: KONSOLE_VERSION → TERM_PROGRAM_VERSION
+ *    - Other terminals: TERM_PROGRAM_VERSION
+ *
+ * 2. **Command Query Fallback** (if env vars unavailable):
+ *    - Executes `<terminal> --version` or `<terminal> -v`
+ *    - Supported: Alacritty, Kitty, WezTerm, Ghostty, Konsole
+ *    - 1 second timeout to prevent blocking
+ *
+ * **Version string formats supported:**
+ * - Standard: "0.13.2", "1.0.0"
+ * - Prefixed: "v0.13.2"
+ * - Short: "0.13" (patch defaults to 0)
+ * - Pre-release: "0.13.0-dev" (metadata ignored)
+ * - Build metadata: "0.13.2+git123abc" (metadata ignored)
+ * - WezTerm date format: "20230712-072601-..." (parsed as major-minor)
+ *
+ * **Caching:**
+ *
+ * Results are cached after the first call to avoid redundant parsing. The cache
+ * persists for the lifetime of the process. Use `detectAppVersion__Bust()` to
+ * clear the cache (primarily for testing).
+ *
+ * @returns Version object with major, minor, patch or null if unknown
+ *
+ * @example
+ * ```typescript
+ * const version = await detectAppVersion();
+ * if (version && version.major === 0 && version.minor >= 13) {
+ *   console.log("Alacritty 0.13+ detected!");
+ * }
+ * ```
+ */
+export async function detectAppVersion(): Promise<AppVersion | null> {
+    // Check cache
+    if (cachedAppVersion !== undefined) {
+        return cachedAppVersion;
+    }
+
+    const terminal = detectTerminalApp();
+    let versionString: string | undefined;
+
+    // Map terminals to their version env vars
+    // Priority: Terminal-specific env var → TERM_PROGRAM_VERSION (standard fallback)
+    switch (terminal) {
+        case "alacritty":
+            versionString = process.env.ALACRITTY_VERSION || process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "wezterm":
+            versionString = process.env.WEZTERM_VERSION || process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "kitty":
+            versionString = process.env.KITTY_VERSION || process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "iterm2":
+            versionString = process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "ghostty":
+            versionString = process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "apple-terminal":
+            versionString = process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "konsole":
+            versionString = process.env.KONSOLE_VERSION || process.env.TERM_PROGRAM_VERSION;
+            break;
+        default:
+            // For any other terminal, try TERM_PROGRAM_VERSION as a fallback
+            versionString = process.env.TERM_PROGRAM_VERSION;
+    }
+
+    // If no version string from env vars, try querying the command directly
+    // (but not for "other" terminal type, since we don't know what it is)
+    if (!versionString && terminal !== "other") {
+        versionString = queryVersionFromCommand(terminal);
+    }
+
+    if (!versionString) {
+        cachedAppVersion = null;
+        return null;
+    }
+
+    // Parse version string
+    const parsed = parseVersionString(versionString);
+    cachedAppVersion = parsed;
+    return parsed;
+}
+
+/**
+ * **queryVersionFromCommand**()
+ *
+ * Attempts to get version information by executing the terminal command with --version flag.
+ *
+ * Checks both stdout and stderr for output (some programs like Alacritty output to stderr).
+ *
+ * @param terminal - The terminal application to query
+ * @returns Version string from command output, or undefined if unavailable
+ */
+function queryVersionFromCommand(terminal: TerminalApp): string | undefined {
+    // Map terminal names to their command names and version flags
+    const commandMap: Partial<Record<TerminalApp, { cmd: string; flags: readonly string[] }>> = {
+        "alacritty": { cmd: "alacritty", flags: ["--version"] },
+        "kitty": { cmd: "kitty", flags: ["--version"] },
+        "wezterm": { cmd: "wezterm", flags: ["--version"] },
+        "ghostty": { cmd: "ghostty", flags: ["--version"] },
+        "konsole": { cmd: "konsole", flags: ["--version"] },
+    };
+
+    const terminalInfo = commandMap[terminal];
+    if (!terminalInfo) {
+        return undefined;
+    }
+
+    // Try each version flag
+    for (const flag of terminalInfo.flags) {
+        const result = runScript(terminalInfo.cmd, [flag], {
+            encoding: "utf8",
+            timeout: 1000, // 1 second timeout
+        });
+
+        // Check if command succeeded
+        // Note: Some programs (like Alacritty) output version to stderr instead of stdout
+        if (result.code === 0) {
+            const output = result.stdout || result.stderr;
+            if (output) {
+                return output;
+            }
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * **parseVersionString**()
+ *
+ * Internal helper to parse semantic version strings.
+ *
+ * Handles various formats:
+ * - "0.13.2" → {major: 0, minor: 13, patch: 2}
+ * - "v0.13.2" → {major: 0, minor: 13, patch: 2}
+ * - "0.13" → {major: 0, minor: 13, patch: 0}
+ * - "0.13.0-dev" → {major: 0, minor: 13, patch: 0}
+ * - "0.13.2+git123" → {major: 0, minor: 13, patch: 2}
+ * - "20230712-072601-..." → {major: 20230712, minor: 72601, patch: 0} (WezTerm format)
+ * - "kitty 0.43.1 created by..." → {major: 0, minor: 43, patch: 1} (extracts version from text)
+ * - "465" → {major: 465, minor: 0, patch: 0} (Apple Terminal build number format)
+ *
+ * @param version - Version string to parse
+ * @returns Parsed version object or null if malformed
+ */
+function parseVersionString(version: string): AppVersion | null {
+    // Try to match standard semantic version anywhere in the string
+    // This handles cases like "kitty 0.43.1 created by Kovid Goyal"
+    // Pattern: optional 'v', then digits.digits.digits (optional)
+    // Everything after - or + is metadata (ignored)
+    let match = version.match(/v?(\d+)\.(\d+)(?:\.(\d+))?(?:[-+]|\s|$)/);
+
+    if (match) {
+        const major = parseInt(match[1], 10);
+        const minor = parseInt(match[2], 10);
+        const patch = parseInt(match[3] || "0", 10);
+        return {
+            major,
+            minor,
+            patch,
+            toString() {
+                return `${major}.${minor}.${patch}`
+            }
+        };
+    }
+
+    // Try to match WezTerm's date-based format: YYYYMMDD-HHMMSS-...
+    match = version.match(/(\d{8})-(\d{6})/);
+
+    if (match) {
+        const major = parseInt(match[1], 10);
+        const minor = parseInt(match[2], 10);
+
+        return {
+            major,
+            minor,
+            patch: 0,
+            toString() {
+                return `${major}.${minor}.0`
+            }
+        };
+    }
+
+    // Try to match single build number (e.g., Apple Terminal's "465")
+    match = version.match(/^(\d+)$/);
+
+    if (match) {
+        const major = parseInt(match[1], 10);
+
+        return {
+            major,
+            minor: 0,
+            patch: 0,
+            toString() {
+                return `${major}.0.0`
+            }
+        };
+    }
+
+    return null;
+}
+
+
+/**
+ * **detectAppVersion__Bust**()
+ *
+ * Clears the cached app version detection result. This is primarily useful
+ * for testing purposes to force re-detection.
+ *
+ * @internal
+ */
+export function detectAppVersion__Bust(): void {
+    cachedAppVersion = undefined;
 }
