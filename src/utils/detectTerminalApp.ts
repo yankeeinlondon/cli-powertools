@@ -272,19 +272,46 @@ export async function detectAppVersion(): Promise<AppVersion | null> {
  *
  * Attempts to get version information by executing the terminal command with --version flag.
  *
- * Checks both stdout and stderr for output (some programs like Alacritty output to stderr).
+ * **Strategy:**
+ * 1. First tries the command in PATH (e.g., `alacritty`)
+ * 2. Falls back to macOS app bundle paths (e.g., `/Applications/Alacritty.app/Contents/MacOS/alacritty`)
+ * 3. Checks both stdout and stderr for output (some programs like Alacritty output to stderr)
  *
  * @param terminal - The terminal application to query
  * @returns Version string from command output, or undefined if unavailable
  */
 function queryVersionFromCommand(terminal: TerminalApp): string | undefined {
     // Map terminal names to their command names and version flags
-    const commandMap: Partial<Record<TerminalApp, { cmd: string; flags: readonly string[] }>> = {
-        "alacritty": { cmd: "alacritty", flags: ["--version"] },
-        "kitty": { cmd: "kitty", flags: ["--version"] },
-        "wezterm": { cmd: "wezterm", flags: ["--version"] },
-        "ghostty": { cmd: "ghostty", flags: ["--version"] },
-        "konsole": { cmd: "konsole", flags: ["--version"] },
+    // For macOS apps, include both the command name and the app bundle path
+    const commandMap: Partial<Record<TerminalApp, {
+        cmd: string;
+        flags: readonly string[];
+        macosAppPath?: string; // Path to binary inside .app bundle
+    }>> = {
+        "alacritty": {
+            cmd: "alacritty",
+            flags: ["--version"],
+            macosAppPath: "/Applications/Alacritty.app/Contents/MacOS/alacritty"
+        },
+        "kitty": {
+            cmd: "kitty",
+            flags: ["--version"],
+            macosAppPath: "/Applications/kitty.app/Contents/MacOS/kitty"
+        },
+        "wezterm": {
+            cmd: "wezterm",
+            flags: ["--version"],
+            macosAppPath: "/Applications/WezTerm.app/Contents/MacOS/wezterm"
+        },
+        "ghostty": {
+            cmd: "ghostty",
+            flags: ["--version"],
+            macosAppPath: "/Applications/Ghostty.app/Contents/MacOS/ghostty"
+        },
+        "konsole": {
+            cmd: "konsole",
+            flags: ["--version"]
+        },
     };
 
     const terminalInfo = commandMap[terminal];
@@ -292,19 +319,27 @@ function queryVersionFromCommand(terminal: TerminalApp): string | undefined {
         return undefined;
     }
 
-    // Try each version flag
-    for (const flag of terminalInfo.flags) {
-        const result = runScript(terminalInfo.cmd, [flag], {
-            encoding: "utf8",
-            timeout: 1000, // 1 second timeout
-        });
+    // Build list of commands to try: PATH command first, then macOS app bundle path
+    const commandsToTry: string[] = [terminalInfo.cmd];
+    if (terminalInfo.macosAppPath) {
+        commandsToTry.push(terminalInfo.macosAppPath);
+    }
 
-        // Check if command succeeded
-        // Note: Some programs (like Alacritty) output version to stderr instead of stdout
-        if (result.code === 0) {
-            const output = result.stdout || result.stderr;
-            if (output) {
-                return output;
+    // Try each command location with each version flag
+    for (const cmd of commandsToTry) {
+        for (const flag of terminalInfo.flags) {
+            const result = runScript(cmd, [flag], {
+                encoding: "utf8",
+                timeout: 1000, // 1 second timeout
+            });
+
+            // Check if command succeeded
+            // Note: Some programs (like Alacritty) output version to stderr instead of stdout
+            if (result.code === 0) {
+                const output = result.stdout || result.stderr;
+                if (output) {
+                    return output;
+                }
             }
         }
     }
@@ -323,6 +358,8 @@ function queryVersionFromCommand(terminal: TerminalApp): string | undefined {
  * - "0.13" → {major: 0, minor: 13, patch: 0}
  * - "0.13.0-dev" → {major: 0, minor: 13, patch: 0}
  * - "0.13.2+git123" → {major: 0, minor: 13, patch: 2}
+ * - "250402" → {major: 25, minor: 4, patch: 2} → "25.04.2" (Konsole YYMMPP format)
+ * - "25.04.2" → {major: 25, minor: 4, patch: 2} → "25.04.2" (Konsole YY.MM.PP from command)
  * - "20230712-072601-..." → {major: 20230712, minor: 72601, patch: 0} (WezTerm format)
  * - "kitty 0.43.1 created by..." → {major: 0, minor: 43, patch: 1} (extracts version from text)
  * - "465" → {major: 465, minor: 0, patch: 0} (Apple Terminal build number format)
@@ -341,12 +378,45 @@ function parseVersionString(version: string): AppVersion | null {
         const major = parseInt(match[1], 10);
         const minor = parseInt(match[2], 10);
         const patch = parseInt(match[3] || "0", 10);
+
+        // Preserve leading zeros for date-based versions (like Konsole's YY.MM.patch format)
+        // Check if minor or patch had leading zeros in the original string
+        const minorStr = match[2];
+        const patchStr = match[3] || "0";
+        const hasLeadingZeros = minorStr.startsWith('0') || patchStr.startsWith('0');
+
         return {
             major,
             minor,
             patch,
             toString() {
-                return `${major}.${minor}.${patch}`
+                // For date-based formats, preserve leading zeros
+                if (hasLeadingZeros && major < 100) {
+                    // Likely a YY.MM.patch format (like Konsole 25.04.2)
+                    return `${major}.${minorStr}.${patch}`;
+                }
+                return `${major}.${minor}.${patch}`;
+            }
+        };
+    }
+
+    // Try to match Konsole's YYMMPP format (e.g., "250402" → 25.04.2)
+    // This is a 6-digit format: YY (year), MM (month), PP (patch)
+    match = version.match(/^(\d{2})(\d{2})(\d{2})$/);
+
+    if (match) {
+        const major = parseInt(match[1], 10);
+        const minorStr = match[2];  // Keep as string to preserve leading zero
+        const minor = parseInt(match[2], 10);
+        const patch = parseInt(match[3], 10);
+
+        return {
+            major,
+            minor,
+            patch,
+            toString() {
+                // Preserve the MM format with leading zero
+                return `${major}.${minorStr}.${patch}`;
             }
         };
     }

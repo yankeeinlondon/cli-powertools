@@ -16,6 +16,7 @@ describe("detectAppVersion()", () => {
         delete process.env.ALACRITTY_VERSION;
         delete process.env.WEZTERM_VERSION;
         delete process.env.KITTY_VERSION;
+        delete process.env.KONSOLE_VERSION;
         delete process.env.TERM_PROGRAM;
         delete process.env.TERM_PROGRAM_VERSION;
         delete process.env.TERM;
@@ -124,6 +125,20 @@ describe("detectAppVersion()", () => {
         const result = await detectAppVersion();
 
         expect(result).toMatchObject({ major: 465, minor: 0, patch: 0 });
+
+        type cases = [
+            Expect<AssertEqual<typeof result, AppVersion | null>>
+        ];
+    });
+
+    it("should detect Konsole version from KONSOLE_VERSION env var (YYMMPP format)", async () => {
+        process.env.TERM = "konsole";
+        process.env.KONSOLE_VERSION = "250402";
+
+        const result = await detectAppVersion();
+
+        expect(result).toMatchObject({ major: 25, minor: 4, patch: 2 });
+        expect(result?.toString()).toBe("25.04.2");  // Leading zero preserved
 
         type cases = [
             Expect<AssertEqual<typeof result, AppVersion | null>>
@@ -242,13 +257,16 @@ describe("detectAppVersion()", () => {
         ];
     });
 
-    it("should return null when version env var is not present", async () => {
+    it("should fallback to command query when version env var is not present", async () => {
         process.env.TERM = "alacritty";
-        // ALACRITTY_VERSION not set
+        // ALACRITTY_VERSION not set - will try command query
 
         const result = await detectAppVersion();
 
-        expect(result).toBe(null);
+        // This test behavior depends on whether alacritty is installed
+        // If installed (even as .app), it should find the version via command query
+        // If not installed, it should return null
+        expect(result === null || (result.major >= 0 && result.minor >= 0)).toBe(true);
 
         type cases = [
             Expect<AssertEqual<typeof result, AppVersion | null>>
@@ -317,20 +335,22 @@ describe("detectAppVersion()", () => {
         ];
     });
 
-    it("should cache null result when version unavailable", async () => {
+    it("should cache result (whether found via env or command query)", async () => {
         process.env.TERM = "alacritty";
-        // No ALACRITTY_VERSION set
+        // No ALACRITTY_VERSION set - may find via command query
 
-        // First call - should return null and cache it
+        // First call - caches whatever is found (could be from command query or null)
         const result1 = await detectAppVersion();
-        expect(result1).toBe(null);
+        const initialVersion = result1?.toString() ?? "null";
 
-        // Set version env var
-        process.env.ALACRITTY_VERSION = "0.13.2";
+        // Set version env var to something different
+        process.env.ALACRITTY_VERSION = "99.99.99";
 
-        // Second call - should still return null (cached)
+        // Second call - should still return cached result (not the new env var)
         const result2 = await detectAppVersion();
-        expect(result2).toBe(null);
+        const cachedVersion = result2?.toString() ?? "null";
+
+        expect(cachedVersion).toBe(initialVersion);
 
         type cases = [
             Expect<AssertEqual<typeof result1, AppVersion | null>>,
