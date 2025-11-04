@@ -62,7 +62,7 @@ export function isRunningInWSL(): boolean {
  *
  * - **macOS/Linux:** iTerm2, Kitty, Alacritty, WezTerm, Konsole, Ghostty
  * - **Windows:** Windows Terminal, PowerShell, cmd.exe, ConEmu, mintty (Git Bash/Cygwin/MSYS2)
- * - **Cross-platform:** Terminals that set TERM_PROGRAM environment variable
+ * - **Cross-platform:** Hyper, and other terminals that set TERM_PROGRAM environment variable
  *
  * **Detection Methods:**
  *
@@ -179,6 +179,7 @@ let cachedAppVersion: AppVersion | null | undefined = undefined;
  *    - Kitty: KITTY_VERSION → TERM_PROGRAM_VERSION
  *    - iTerm2: TERM_PROGRAM_VERSION
  *    - Ghostty: TERM_PROGRAM_VERSION
+ *    - Hyper: TERM_PROGRAM_VERSION
  *    - Apple Terminal: TERM_PROGRAM_VERSION
  *    - Konsole: KONSOLE_VERSION → TERM_PROGRAM_VERSION
  *    - Other terminals: TERM_PROGRAM_VERSION
@@ -237,6 +238,12 @@ export async function detectAppVersion(): Promise<AppVersion | null> {
             versionString = process.env.TERM_PROGRAM_VERSION;
             break;
         case "ghostty":
+            versionString = process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "hyper":
+            versionString = process.env.TERM_PROGRAM_VERSION;
+            break;
+        case "warp":
             versionString = process.env.TERM_PROGRAM_VERSION;
             break;
         case "apple-terminal":
@@ -361,6 +368,7 @@ function queryVersionFromCommand(terminal: TerminalApp): string | undefined {
  * - "250402" → {major: 25, minor: 4, patch: 2} → "25.04.2" (Konsole YYMMPP format)
  * - "25.04.2" → {major: 25, minor: 4, patch: 2} → "25.04.2" (Konsole YY.MM.PP from command)
  * - "20230712-072601-..." → {major: 20230712, minor: 72601, patch: 0} (WezTerm format)
+ * - "v0.2025.10.29.08.12.stable_04" → {major: 0, minor: 20251029, patch: 812} (Warp format)
  * - "kitty 0.43.1 created by..." → {major: 0, minor: 43, patch: 1} (extracts version from text)
  * - "465" → {major: 465, minor: 0, patch: 0} (Apple Terminal build number format)
  *
@@ -434,6 +442,32 @@ function parseVersionString(version: string): AppVersion | null {
             patch: 0,
             toString() {
                 return `${major}.${minor}.0`
+            }
+        };
+    }
+
+    // Try to match Warp's date-time format: v0.YYYY.MM.DD.HH.MM.suffix
+    // Example: "v0.2025.10.29.08.12.stable_04" → major: 0, minor: 20251029, patch: 812
+    match = version.match(/^v?(\d+)\.(\d{4})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})(?:\.\w+)?/);
+
+    if (match) {
+        const major = parseInt(match[1], 10);
+        const year = match[2];
+        const month = match[3];
+        const day = match[4];
+        const hour = match[5];
+        const minute = match[6];
+
+        // Combine date parts into minor (YYYYMMDD) and time parts into patch (HHMM)
+        const minor = parseInt(`${year}${month}${day}`, 10);
+        const patch = parseInt(`${hour}${minute}`, 10);
+
+        return {
+            major,
+            minor,
+            patch,
+            toString() {
+                return `${major}.${minor}.${patch}`;
             }
         };
     }

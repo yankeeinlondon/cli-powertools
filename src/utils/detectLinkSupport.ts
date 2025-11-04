@@ -22,6 +22,8 @@ let cachedLinkSupport: boolean | null | undefined = undefined;
  * - Kitty (cross-platform) - Full support
  * - Alacritty (cross-platform) - Support added in v0.13+ (Nov 2023)
  * - Ghostty (macOS/Linux) - Full support
+ * - Hyper (cross-platform) - Support added in v3.0+
+ * - Warp (macOS/Linux) - Full support
  * - Windows Terminal (Windows) - Full support since v1.8+ (2022)
  *
  * **Unsupported Terminals (return `false`):**
@@ -97,6 +99,8 @@ export async function detectLinkSupport(): Promise<boolean | null> {
         "alacritty": true,  // Optimistic default when version unavailable
         "konsole": false,  // Despite accepting OSC8 sequences, doesn't render them as clickable
         "ghostty": true,
+        "hyper": true,  // Support added in v3.0+
+        "warp": true,
         "windows-terminal": true,
         "apple-terminal": false,
         "cmd": false,

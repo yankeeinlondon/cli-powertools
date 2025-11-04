@@ -156,6 +156,8 @@ export const TERMINAL_APPS = narrow(
     "iterm2",
     "kitty",
     "alacritty",
+    "hyper",
+    "warp",
     "apple-terminal",
     "konsole",
     "windows-terminal",
@@ -176,7 +178,9 @@ export const TERM_PROGRAM_LOOKUP = narrow({
     wezterm: "wezterm",
     apple_terminal: "apple-terminal",
     alacritty: "alacritty",
-    "iterm.app": "iterm2"
+    "iterm.app": "iterm2",
+    hyper: "hyper",
+    warpterminal: "warp"
 
 }) satisfies Record<string, typeof TERMINAL_APPS[number]>
 

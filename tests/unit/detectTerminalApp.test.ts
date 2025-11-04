@@ -113,6 +113,34 @@ describe("detectTerminalApp()", () => {
         expect(result).toBe("iterm2");
     });
 
+    it("should detect Hyper from TERM_PROGRAM='Hyper'", () => {
+        process.env.TERM_PROGRAM = "Hyper";
+
+        const result = detectTerminalApp();
+        expect(result).toBe("hyper");
+    });
+
+    it("should detect Hyper from TERM_PROGRAM='HYPER' (case insensitive)", () => {
+        process.env.TERM_PROGRAM = "HYPER";
+
+        const result = detectTerminalApp();
+        expect(result).toBe("hyper");
+    });
+
+    it("should detect Warp from TERM_PROGRAM='WarpTerminal'", () => {
+        process.env.TERM_PROGRAM = "WarpTerminal";
+
+        const result = detectTerminalApp();
+        expect(result).toBe("warp");
+    });
+
+    it("should detect Warp from TERM_PROGRAM='WARPTERMINAL' (case insensitive)", () => {
+        process.env.TERM_PROGRAM = "WARPTERMINAL";
+
+        const result = detectTerminalApp();
+        expect(result).toBe("warp");
+    });
+
     // ========== HAPPY PATH TESTS - TERM Detection ==========
 
     it("should detect Kitty from TERM='xterm-kitty'", () => {
@@ -432,6 +460,8 @@ describe("detectTerminalApp()", () => {
             "iterm2",
             "kitty",
             "alacritty",
+            "hyper",
+            "warp",
             "apple-terminal",
             "konsole",
             "other"

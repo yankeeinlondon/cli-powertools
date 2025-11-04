@@ -142,6 +142,30 @@ describe("detectLinkSupport()", () => {
         ];
     });
 
+    it("should return true for Hyper when TERM_PROGRAM='Hyper'", async () => {
+        process.env.TERM_PROGRAM = "Hyper";
+
+        const result = await detectLinkSupport();
+
+        expect(result).toBe(true);
+
+        type cases = [
+            Expect<AssertEqual<typeof result, boolean | null>>
+        ];
+    });
+
+    it("should return true for Warp when TERM_PROGRAM='WarpTerminal'", async () => {
+        process.env.TERM_PROGRAM = "WarpTerminal";
+
+        const result = await detectLinkSupport();
+
+        expect(result).toBe(true);
+
+        type cases = [
+            Expect<AssertEqual<typeof result, boolean | null>>
+        ];
+    });
+
     it("should return true for Windows Terminal when WT_SESSION present", async () => {
         process.env.TERM = "xterm-256color";
         process.env.WT_SESSION = "12345";

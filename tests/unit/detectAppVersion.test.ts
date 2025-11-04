@@ -118,6 +118,33 @@ describe("detectAppVersion()", () => {
         ];
     });
 
+    it("should detect Hyper version from TERM_PROGRAM_VERSION env var", async () => {
+        process.env.TERM_PROGRAM = "Hyper";
+        process.env.TERM_PROGRAM_VERSION = "3.1.5";
+
+        const result = await detectAppVersion();
+
+        expect(result).toMatchObject({ major: 3, minor: 1, patch: 5 });
+
+        type cases = [
+            Expect<AssertEqual<typeof result, AppVersion | null>>
+        ];
+    });
+
+    it("should detect Warp version from TERM_PROGRAM_VERSION env var (date-time format)", async () => {
+        process.env.TERM_PROGRAM = "WarpTerminal";
+        process.env.TERM_PROGRAM_VERSION = "v0.2025.10.29.08.12.stable_04";
+
+        const result = await detectAppVersion();
+
+        expect(result).toMatchObject({ major: 0, minor: 20251029, patch: 812 });
+        expect(result?.toString()).toBe("0.20251029.812");
+
+        type cases = [
+            Expect<AssertEqual<typeof result, AppVersion | null>>
+        ];
+    });
+
     it("should detect Apple Terminal version from TERM_PROGRAM_VERSION env var (build number format)", async () => {
         process.env.TERM_PROGRAM = "Apple_Terminal";
         process.env.TERM_PROGRAM_VERSION = "465";
