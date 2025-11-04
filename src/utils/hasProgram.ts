@@ -92,17 +92,48 @@ export function hasProgram__Bust() {
 }
 
 /**
+ * Common shell builtins on Unix-like systems (bash, sh, zsh)
+ */
+const UNIX_BUILTINS = new Set([
+    "cd", "pwd", "echo", "test", "[", "alias", "bg", "bind", "break",
+    "builtin", "caller", "command", "compgen", "complete", "continue",
+    "declare", "dirs", "disown", "enable", "eval", "exec", "exit",
+    "export", "false", "fc", "fg", "getopts", "hash", "help", "history",
+    "jobs", "kill", "let", "local", "logout", "popd", "printf", "pushd",
+    "read", "readonly", "return", "set", "shift", "shopt", "source",
+    "suspend", "times", "trap", "true", "type", "typeset", "ulimit",
+    "umask", "unalias", "unset", "wait"
+]);
+
+/**
+ * Common shell builtins on Windows (cmd.exe and PowerShell)
+ */
+const WINDOWS_BUILTINS = new Set([
+    "assoc", "break", "call", "cd", "chdir", "cls", "color", "copy",
+    "date", "del", "dir", "echo", "endlocal", "erase", "exit", "for",
+    "ftype", "goto", "if", "md", "mkdir", "mklink", "move", "path",
+    "pause", "popd", "prompt", "pushd", "rd", "rem", "ren", "rename",
+    "rmdir", "set", "setlocal", "shift", "start", "time", "title",
+    "type", "ver", "verify", "vol"
+]);
+
+/**
  * **hasProgram**`(cmd)`
  *
  * Tests whether the program named `cmd` exists in the executable path
- * of the host system.
+ * of the host system or is a known shell builtin.
  *
  * - will return `false` (in type system and runtime) when the command name only contains
  *   whitespace or is an empty string
  * - will return a `InvalidChar` error when an invalid character is
  *   included in the name (defined by `InvalidCommandChar` type)
  * - in all other cases this function will return a `boolean` result
- *   based on whether the `cmd` was found in the executable path
+ *   based on whether the `cmd` was found in the executable path or is a known builtin
+ *
+ * **Builtin Detection:**
+ *
+ * This function recognizes common shell builtins on both Unix-like systems and Windows.
+ * Builtins are commands built into the shell itself and are not separate executables.
  *
  * **Performance Caching:**
  *
@@ -132,9 +163,20 @@ export function hasProgram<T extends string>(cmd: T & WithoutChars<T>): Rtn<T> {
         return programCache.get(cmd)! as Rtn<T>;
     }
 
-    try {
-        const os = discoverOs();
+    const os = discoverOs();
 
+    // Check if it's a known builtin first (fastest check, no shell execution needed)
+    const isBuiltin = os === "win32"
+        ? WINDOWS_BUILTINS.has(cmd.toLowerCase())
+        : UNIX_BUILTINS.has(cmd);
+
+    if (isBuiltin) {
+        programCache.set(cmd, true);
+        return true as Rtn<T>;
+    }
+
+    // Not a builtin, check if it's an executable in PATH
+    try {
         // Platform-specific command selection
         let command: string;
         if (os === "win32") {

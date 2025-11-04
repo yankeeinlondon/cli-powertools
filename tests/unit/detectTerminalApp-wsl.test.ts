@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { detectTerminalApp, isRunningInWSL } from "~/utils/detectTerminalApp";
+import { discoverOs } from "~/utils/os";
 import type { Expect, AssertExtends } from "inferred-types/types";
 import type { TerminalApp } from "~/types";
 
@@ -131,13 +132,13 @@ describe("detectTerminalApp() - WSL Detection", () => {
 
     // ========== ERROR CONDITIONS ==========
 
-    it("should not throw when checking for /proc/version on non-Linux systems", () => {
-        // On non-Linux systems (like macOS where tests run), /proc/version doesn't exist
+    it.skipIf(discoverOs() === "linux")("should not throw when checking for /proc/version on non-Linux systems", () => {
+        // On non-Linux systems (like macOS or native Windows), /proc/version doesn't exist
         // The function should handle this gracefully
         delete process.env.WSL_DISTRO_NAME;
 
         expect(() => isRunningInWSL()).not.toThrow();
-        // On macOS, this should return false
+        // On macOS or native Windows, this should return false
         const isWsl = isRunningInWSL();
         expect(isWsl).toBe(false);
     });
