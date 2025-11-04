@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
+        "CMDER",
         "COLORTERM",
+        "conemu",
         "DBUS",
         "findstr",
         "GHOSTTY",
@@ -9,6 +11,8 @@
         "ITERM",
         "KONSOLE",
         "Linearizes",
+        "mintty",
+        "MSYSTEM",
         "riscv",
         "truecolor",
         "WCAG",

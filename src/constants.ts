@@ -15,6 +15,11 @@ export const TERMINAL_APPS = narrow(
     "alacritty",
     "apple-terminal",
     "konsole",
+    "windows-terminal",
+    "powershell",
+    "cmd",
+    "conemu",
+    "mintty",
 
     "other"
 )
@@ -85,5 +90,51 @@ export const KITTY_ENV = narrow(
     "KITTY_PUBLIC_KEY",
     "KITTY_INSTALLATION_DIR",
     "KITTY_PID"
+)
+
+/**
+ * Environment variables often set by **Windows Terminal**
+ * (modern Microsoft terminal app on Windows 11).
+ */
+export const WINDOWS_TERMINAL_ENV = narrow(
+    "WT_SESSION",
+    "WT_PROFILE_ID"
+)
+
+/**
+ * Environment variables often set by **PowerShell**
+ * console.
+ */
+export const POWERSHELL_ENV = narrow(
+    "PSModulePath",
+    "POWERSHELL_DISTRIBUTION_CHANNEL"
+)
+
+/**
+ * Environment variables often set by **cmd.exe**
+ * (Windows Command Prompt).
+ */
+export const CMD_ENV = narrow(
+    "PROMPT",
+    "COMSPEC"
+)
+
+/**
+ * Environment variables often set by **ConEmu** or **cmder**
+ * terminal emulators.
+ */
+export const CONEMU_ENV = narrow(
+    "ConEmuDir",
+    "ConEmuBaseDir",
+    "CMDER_ROOT"
+)
+
+/**
+ * Environment variables often set by **mintty**
+ * (Cygwin, MSYS2, Git Bash).
+ */
+export const MINTTY_ENV = narrow(
+    "MSYSTEM",
+    "CHERE_INVOKING"
 )
 
