@@ -31,6 +31,18 @@ describe("detectTerminalApp()", () => {
         delete process.env.GHOSTTY_RESOURCES_DIR;
         delete process.env.GHOSTTY_SHELL_FEATURES;
         delete process.env.GHOSTTY_BIN_DIR;
+        // Windows-specific environment variables
+        delete process.env.WT_SESSION;
+        delete process.env.WT_PROFILE_ID;
+        delete process.env.PSModulePath;
+        delete process.env.POWERSHELL_DISTRIBUTION_CHANNEL;
+        delete process.env.PROMPT;
+        delete process.env.COMSPEC;
+        delete process.env.ConEmuDir;
+        delete process.env.ConEmuBaseDir;
+        delete process.env.CMDER_ROOT;
+        delete process.env.MSYSTEM;
+        delete process.env.CHERE_INVOKING;
     });
 
     afterEach(() => {
