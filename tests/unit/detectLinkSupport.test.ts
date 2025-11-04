@@ -116,13 +116,13 @@ describe("detectLinkSupport()", () => {
         ];
     });
 
-    it("should return true for Konsole when KONSOLE_VERSION env var present", async () => {
+    it("should return false for Konsole (OSC8 sequences not rendered as clickable)", async () => {
         process.env.TERM = "xterm-256color";
         process.env.KONSOLE_VERSION = "21.12.0";
 
         const result = await detectLinkSupport();
 
-        expect(result).toBe(true);
+        expect(result).toBe(false);
 
         type cases = [
             Expect<AssertEqual<typeof result, boolean | null>>

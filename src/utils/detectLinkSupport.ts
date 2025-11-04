@@ -22,12 +22,12 @@ let cachedLinkSupport: boolean | null | undefined = undefined;
  * - Kitty (cross-platform) - Full support
  * - Alacritty (cross-platform) - Support added in v0.13+ (Nov 2023)
  * - Ghostty (macOS/Linux) - Full support
- * - Konsole (Linux/KDE) - Full support in recent versions
  * - Windows Terminal (Windows) - Full support since v1.8+ (2022)
  *
  * **Unsupported Terminals (return `false`):**
  *
  * - Apple Terminal.app (macOS) - No support
+ * - Konsole (Linux/KDE) - No practical support (OSC8 sequences don't render as clickable links)
  * - cmd.exe (Windows) - No support
  * - PowerShell (standalone, non-Windows Terminal) - No support
  * - ConEmu (Windows) - No support
@@ -95,7 +95,7 @@ export async function detectLinkSupport(): Promise<boolean | null> {
         "wezterm": true,
         "kitty": true,
         "alacritty": true,  // Optimistic default when version unavailable
-        "konsole": true,
+        "konsole": false,  // Despite accepting OSC8 sequences, doesn't render them as clickable
         "ghostty": true,
         "windows-terminal": true,
         "apple-terminal": false,
